@@ -1,0 +1,40 @@
+cat > docs/api.http <<'EOF'
+@baseUrl = http://localhost:8080
+
+### Health check
+GET {{baseUrl}}/health
+
+### Get all projects
+GET {{baseUrl}}/api/projects
+
+### Create project
+POST {{baseUrl}}/api/projects
+Content-Type: application/json
+
+{
+  "name": "Portfolio Tracker API",
+  "description": "A professional .NET API for tracking developer portfolio projects.",
+  "repositoryUrl": "https://github.com/birabotto/portfolio-tracker-api",
+  "demoUrl": null,
+  "techStack": ".NET, EF Core, PostgreSQL, Docker, GitHub Actions"
+}
+
+### Get project by ID
+GET {{baseUrl}}/api/projects/00000000-0000-0000-0000-000000000000
+
+### Update project
+PUT {{baseUrl}}/api/projects/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "name": "Portfolio Tracker API",
+  "description": "Updated project description.",
+  "repositoryUrl": "https://github.com/birabotto/portfolio-tracker-api",
+  "demoUrl": "https://example.com",
+  "techStack": ".NET, EF Core, PostgreSQL, Docker, GitHub Actions",
+  "status": "Completed"
+}
+
+### Delete project
+DELETE {{baseUrl}}/api/projects/00000000-0000-0000-0000-000000000000
+EOF
