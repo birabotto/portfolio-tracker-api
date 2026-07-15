@@ -1,5 +1,6 @@
 using PortfolioTracker.Application.DTOs;
 using PortfolioTracker.Application.Interfaces;
+using PortfolioTracker.Domain.Enums;
 
 namespace PortfolioTracker.Api.Endpoints;
 
@@ -11,10 +12,20 @@ public static class ProjectEndpoints
             .WithTags("Projects");
 
         group.MapGet("/", async (
+            string? search,
+            ProjectStatus? status,
+            int? pageNumber,
+            int? pageSize,
             IProjectService projectService,
             CancellationToken cancellationToken) =>
         {
-            var projects = await projectService.GetAllAsync(cancellationToken);
+            var queryParameters = new ProjectQueryParameters(
+                search,
+                status,
+                pageNumber ?? 1,
+                pageSize ?? 10);
+
+            var projects = await projectService.GetPagedAsync(queryParameters, cancellationToken);
 
             return Results.Ok(projects);
         });

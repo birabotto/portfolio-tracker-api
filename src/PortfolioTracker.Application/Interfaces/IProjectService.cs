@@ -6,6 +6,10 @@ public interface IProjectService
 {
     Task<IReadOnlyList<ProjectDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<PagedResult<ProjectDto>> GetPagedAsync(
+        ProjectQueryParameters queryParameters,
+        CancellationToken cancellationToken = default);
+
     Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<ProjectDto> CreateAsync(CreateProjectRequest request, CancellationToken cancellationToken = default);

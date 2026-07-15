@@ -74,6 +74,39 @@ public sealed class ProjectServiceTests
     }
 
     [Fact]
+    public async Task GetPagedAsync_ShouldReturnFilteredPagedProjects()
+    {
+        var repository = new FakeProjectRepository();
+        var service = new ProjectService(repository);
+
+        await service.CreateAsync(new CreateProjectRequest(
+            "Portfolio Tracker API",
+            "A professional API for tracking portfolio projects.",
+            "https://github.com/example/portfolio-tracker-api",
+            null,
+            ".NET, EF Core, PostgreSQL, Docker"));
+
+        await service.CreateAsync(new CreateProjectRequest(
+            "Task Manager API",
+            "A simple task management API.",
+            "https://github.com/example/task-manager-api",
+            null,
+            ".NET, PostgreSQL"));
+
+        var result = await service.GetPagedAsync(new ProjectQueryParameters(
+            "portfolio",
+            ProjectStatus.Planning,
+            1,
+            10));
+
+        Assert.Single(result.Items);
+        Assert.Equal(1, result.PageNumber);
+        Assert.Equal(10, result.PageSize);
+        Assert.Equal(1, result.TotalCount);
+        Assert.Equal("Portfolio Tracker API", result.Items[0].Name);
+    }
+
+    [Fact]
     public async Task GetByIdAsync_ShouldReturnProject_WhenProjectExists()
     {
         var repository = new FakeProjectRepository();

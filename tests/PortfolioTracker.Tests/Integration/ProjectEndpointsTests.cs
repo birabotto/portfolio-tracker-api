@@ -45,15 +45,46 @@ public sealed class ProjectEndpointsTests : IClassFixture<PortfolioTrackerApiFac
     }
 
     [Fact]
-    public async Task GetProjects_ShouldReturnOk()
+    public async Task GetProjects_ShouldReturnPagedResult()
     {
-        var response = await _client.GetAsync("/api/projects");
+        var response = await _client.GetAsync("/api/projects?pageNumber=1&pageSize=10");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var projects = await response.Content.ReadFromJsonAsync<List<ProjectDto>>();
+        var projects = await response.Content.ReadFromJsonAsync<PagedResult<ProjectDto>>();
 
         Assert.NotNull(projects);
+        Assert.Equal(1, projects.PageNumber);
+        Assert.Equal(10, projects.PageSize);
+        Assert.True(projects.TotalCount >= 0);
+        Assert.NotNull(projects.Items);
+    }
+
+    [Fact]
+    public async Task GetProjects_ShouldFilterBySearch()
+    {
+        var uniqueName = $"Searchable Project {Guid.NewGuid()}";
+
+        var request = new CreateProjectRequest(
+            uniqueName,
+            "Project created to test search.",
+            "https://github.com/example/searchable-project",
+            null,
+            ".NET, EF Core, PostgreSQL");
+
+        var createResponse = await _client.PostAsJsonAsync("/api/projects", request);
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var response = await _client.GetAsync($"/api/projects?search={Uri.EscapeDataString(uniqueName)}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ProjectDto>>();
+
+        Assert.NotNull(result);
+        Assert.Single(result.Items);
+        Assert.Equal(uniqueName, result.Items[0].Name);
     }
 
     [Fact]
@@ -101,7 +132,7 @@ public sealed class ProjectEndpointsTests : IClassFixture<PortfolioTrackerApiFac
         Assert.NotNull(createdProject);
 
         var updateRequest = new UpdateProjectRequest(
-            "Updated Integration Project",
+            $"Updated Integration Project {Guid.NewGuid()}",
             "Project updated during integration testing.",
             "https://github.com/example/updated-integration-project",
             "https://example.com",

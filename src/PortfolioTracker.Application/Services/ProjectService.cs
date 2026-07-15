@@ -22,6 +22,24 @@ public sealed class ProjectService : IProjectService
             .ToList();
     }
 
+    public async Task<PagedResult<ProjectDto>> GetPagedAsync(
+        ProjectQueryParameters queryParameters,
+        CancellationToken cancellationToken = default)
+    {
+        var projects = await _projectRepository.GetPagedAsync(queryParameters, cancellationToken);
+
+        var items = projects.Items
+            .Select(MapToDto)
+            .ToList();
+
+        return new PagedResult<ProjectDto>(
+            items,
+            projects.PageNumber,
+            projects.PageSize,
+            projects.TotalCount,
+            projects.TotalPages);
+    }
+
     public async Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var project = await _projectRepository.GetByIdAsync(id, cancellationToken);

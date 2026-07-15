@@ -1,11 +1,19 @@
-cat > docs/api.http <<'EOF'
 @baseUrl = http://localhost:8080
 
 ### Health check
 GET {{baseUrl}}/health
 
-### Get all projects
-GET {{baseUrl}}/api/projects
+### Get paged projects
+GET {{baseUrl}}/api/projects?pageNumber=1&pageSize=10
+
+### Search projects
+GET {{baseUrl}}/api/projects?search=dotnet&pageNumber=1&pageSize=10
+
+### Filter projects by status
+GET {{baseUrl}}/api/projects?status=Completed&pageNumber=1&pageSize=10
+
+### Search and filter projects
+GET {{baseUrl}}/api/projects?search=api&status=Planning&pageNumber=1&pageSize=5
 
 ### Create project
 POST {{baseUrl}}/api/projects
@@ -37,4 +45,3 @@ Content-Type: application/json
 
 ### Delete project
 DELETE {{baseUrl}}/api/projects/00000000-0000-0000-0000-000000000000
-EOF
