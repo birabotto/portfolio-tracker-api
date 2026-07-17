@@ -190,4 +190,23 @@ public sealed class ProjectEndpointsTests : IClassFixture<PortfolioTrackerApiFac
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task CreateProject_ShouldReturnValidationProblem_WhenNameIsEmpty()
+    {
+        var request = new CreateProjectRequest(
+            "",
+            "Project with empty name.",
+            "https://github.com/example/empty-name",
+            null,
+            ".NET");
+
+        var response = await _client.PostAsJsonAsync("/api/projects", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("Project name is required", content);
+    }
 }

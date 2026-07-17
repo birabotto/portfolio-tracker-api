@@ -1,3 +1,5 @@
+using FluentValidation;
+using PortfolioTracker.Api.Extensions;
 using PortfolioTracker.Application.DTOs;
 using PortfolioTracker.Application.Interfaces;
 using PortfolioTracker.Domain.Enums;
@@ -44,18 +46,22 @@ public static class ProjectEndpoints
 
         group.MapPost("/", async (
             CreateProjectRequest request,
+            IValidator<CreateProjectRequest> validator,
             IProjectService projectService,
             CancellationToken cancellationToken) =>
         {
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToErrorDictionary());
+            }
+
             try
             {
                 var project = await projectService.CreateAsync(request, cancellationToken);
 
                 return Results.Created($"/api/projects/{project.Id}", project);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.BadRequest(new { message = exception.Message });
             }
             catch (InvalidOperationException exception)
             {
@@ -66,21 +72,22 @@ public static class ProjectEndpoints
         group.MapPut("/{id:guid}", async (
             Guid id,
             UpdateProjectRequest request,
+            IValidator<UpdateProjectRequest> validator,
             IProjectService projectService,
             CancellationToken cancellationToken) =>
         {
-            try
-            {
-                var project = await projectService.UpdateAsync(id, request, cancellationToken);
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
-                return project is null
-                    ? Results.NotFound()
-                    : Results.Ok(project);
-            }
-            catch (ArgumentException exception)
+            if (!validationResult.IsValid)
             {
-                return Results.BadRequest(new { message = exception.Message });
+                return Results.ValidationProblem(validationResult.ToErrorDictionary());
             }
+
+            var project = await projectService.UpdateAsync(id, request, cancellationToken);
+
+            return project is null
+                ? Results.NotFound()
+                : Results.Ok(project);
         });
 
         group.MapDelete("/{id:guid}", async (
